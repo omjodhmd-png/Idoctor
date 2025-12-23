@@ -1,0 +1,21 @@
+import { QueryClient,  QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import { StackScreen } from "react-native-screens";
+
+
+
+ const queryClient = new QueryClient();
+
+export default function Layout() {
+  return (
+    <Stack>
+     
+      <Stack.Screen name="information" options={{headerShown:false}}/>
+      
+
+
+    
+
+     </Stack>
+  );
+}

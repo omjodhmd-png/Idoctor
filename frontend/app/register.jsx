@@ -1,41 +1,78 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useCreatUser } from "../servis/register/mutation.js";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from "react";
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useCreatUser } from '../servis/user/mutation';
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+
+
 
 export default function SignupScreen() {
   const [secure, setSecure] = useState(true);
   const [agree, setAgree] = useState(false);
- const creatUser=useCreatUser();
-  return (
-    <LinearGradient
-    colors={[ "#eaf6ff","#ffffff","#a6d8ff"]}
-      style={{ flex: 1 }}
-    >
-      <SafeAreaView style={styles.container}>
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
+  
+  const router = useRouter();
 
+  const creatUser = useCreatUser();
+
+  const handleRegister = () => {
+    if (!agree) return alert("You must agree to terms");
+  
+    creatUser.mutate(
+      { fullName, email, password, role },
+      {
+        onSuccess: (data) => {
+          alert("User registered successfully!");
+  
+          if (data.role === "doctor") {
+            router.replace("./(doctor)/information");
+          } else {
+            router.replace("./(user)/(tabs)/home");
+          }
+        },
+        onError: (error) => alert(error.message),
+      }
+    );
+  };
+  
+
+  return (
+    <LinearGradient colors={["#eaf6ff", "#ffffff", "#a6d8ff"]} style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        
         {/* Title */}
         <Text style={styles.title}>Join us to start searching</Text>
         <Text style={styles.subtitle}>
           You can search course, apply course and find scholarship for abroad studies
         </Text>
+        {/* Role selection */}
+        
+
+
 
         {/* Inputs */}
         <View style={styles.inputBox}>
-          <TextInput placeholder="Name" style={styles.input} />
+          <TextInput
+            placeholder="Name"
+            style={styles.input}
+            value={fullName}
+            onChangeText={setFullName}
+          />
         </View>
 
         <View style={styles.inputBox}>
-          <TextInput placeholder="Email" style={styles.input} />
+          <TextInput
+            placeholder="Email"
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+          />
         </View>
 
         <View style={styles.inputBox}>
@@ -43,24 +80,55 @@ export default function SignupScreen() {
             placeholder="Password"
             secureTextEntry={secure}
             style={styles.input}
+            value={password}
+            onChangeText={setPassword}
           />
+          
+          <TouchableOpacity style={styles.eye} onPress={() => setSecure(!secure)}>
+            <Ionicons name={secure ? "eye-off-outline" : "eye-outline"} size={20} color="#999" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.roleContainer}>
           <TouchableOpacity
-            style={styles.eye}
-            onPress={() => setSecure(!secure)}
+            style={[
+              styles.roleButton,
+              role === "user" && styles.roleActive,
+            ]}
+            onPress={() => setRole("user")}
           >
-            <Ionicons
-              name={secure ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color="#999"
-            />
+            <Text
+              style={[
+                styles.roleText,
+                role === "user" && styles.roleTextActive,
+              ]}
+            >
+              User
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.roleButton,
+              role === "doctor" && styles.roleActive,
+            ]}
+            onPress={() => setRole("doctor")}
+          >
+            <Text
+              style={[
+                styles.roleText,
+                role === "doctor" && styles.roleTextActive,
+              ]}
+            >
+              Doctor
+            </Text>
           </TouchableOpacity>
         </View>
 
+
+
+
         {/* Terms */}
-        <TouchableOpacity
-          style={styles.terms}
-          onPress={() => setAgree(!agree)}
-        >
+        <TouchableOpacity style={styles.terms} onPress={() => setAgree(!agree)}>
           <View style={[styles.checkbox, agree && styles.checked]} />
           <Text style={styles.termsText}>
             I agree with the Terms of Service & Privacy Policy
@@ -68,115 +136,149 @@ export default function SignupScreen() {
         </TouchableOpacity>
 
         {/* Button */}
-        <TouchableOpacity style={styles.button} onPress={()=>router.push("./(tabs)/doctors")}>
-          <Text style={styles.buttonText}>Sign up</Text>
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>
+            {creatUser.isLoading ? "Registering..." : "Sign up"}
+          </Text>
         </TouchableOpacity>
 
         {/* Login */}
         <Text style={styles.loginText}>
-        <TouchableOpacity onPress={()=>router.push("./login")}>
-         
-          
-          <Text style={styles.loginLink}> Log in</Text>
+          <TouchableOpacity onPress={() => router.push("./login")}>
+            <Text style={styles.loginLink}> Log in</Text>
           </TouchableOpacity>
         </Text>
-
       </SafeAreaView>
     </LinearGradient>
   );
 }
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingHorizontal: 25,
-      justifyContent: 'center',
-    },
+
+export const styles = StyleSheet.create({
+  roleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
   
-    title: {
-      fontSize: 26,
-      fontWeight: 'bold',
-      color: '#000',
-      marginBottom: 10,
-    },
+  roleButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e6eaf0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 5,
+    backgroundColor: "#fff",
+  },
   
-    subtitle: {
-      fontSize: 14,
-      color: '#6b7c93',
-      marginBottom: 30,
-    },
+  roleActive: {
+    backgroundColor: "#0A84FF",
+    borderColor: "#0A84FF",
+  },
   
-    inputBox: {
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      paddingHorizontal: 15,
-      height: 55,
-      justifyContent: 'center',
-      marginBottom: 15,
-      borderWidth: 1,
-      borderColor: '#e6eaf0',
-    },
+  roleText: {
+    color: "#6b7c93",
+    fontWeight: "500",
+  },
   
-    input: {
-      fontSize: 15,
-      color: '#000',
-    },
+  roleTextActive: {
+    color: "#fff",
+    fontWeight: "600",
+  },
   
-    eye: {
-      position: 'absolute',
-      right: 15,
-    },
-  
-    terms: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 15,
-    },
-  
-    checkbox: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
-      borderWidth: 1,
-      borderColor: '#bbb',
-      marginRight: 10,
-    },
-  
-    checked: {
-      backgroundColor: '#0A84FF',
-      borderColor: '#0A84FF',
-    },
-  
-    termsText: {
-      fontSize: 12,
-      color: '#6b7c93',
-      flex: 1,
-    },
-  
-    button: {
-      backgroundColor: '#0A84FF',
-      height: 55,
-      borderRadius: 14,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 25,
-    },
-  
-    buttonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  
-    loginText: {
-      textAlign: 'center',
-      marginTop: 20,
-      fontSize: 14,
-      color: '#6b7c93',
-    },
-  
-    loginLink: {
-      color: '#0A84FF',
-      fontWeight: '600',
-    },
-  });
-  
+  container: {
+    flex: 1,
+    paddingHorizontal: 25,
+    justifyContent: 'center',
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7c93',
+    marginBottom: 30,
+  },
+
+  inputBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 55,
+    justifyContent: 'center',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#e6eaf0',
+    position: 'relative',
+  },
+
+  input: {
+    fontSize: 15,
+    color: '#000',
+  },
+
+  eye: {
+    position: 'absolute',
+    right: 15,
+    top: 18,
+  },
+
+  terms: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 15,
+  },
+
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#bbb',
+    marginRight: 10,
+  },
+
+  checked: {
+    backgroundColor: '#0A84FF',
+    borderColor: '#0A84FF',
+  },
+
+  termsText: {
+    fontSize: 12,
+    color: '#6b7c93',
+    flex: 1,
+  },
+
+  button: {
+    backgroundColor: '#0A84FF',
+    height: 55,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 25,
+  },
+
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  loginText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 14,
+    color: '#6b7c93',
+  },
+
+  loginLink: {
+    color: '#0A84FF',
+    fontWeight: '600',
+  },
+});

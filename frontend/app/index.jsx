@@ -25,7 +25,7 @@ export default function SplashScreen() {
     scale.value = withSpring(1);
 
     const timer = setTimeout(() => {
-      router.replace("/home");
+      router.replace("/register");
     }, 3000);
 
     return () => clearTimeout(timer);

@@ -2,11 +2,11 @@ import { DataTypes } from "sequelize";
 import  sequelize  from "../config/db.js"; // import instance ديال sequelize
 
 const User = sequelize.define("user", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+  // id: {
+  //   type: DataTypes.INTEGER,
+  //   primaryKey: true,
+  //   autoIncrement: true,
+  // },
   fullName: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -22,7 +22,7 @@ const User = sequelize.define("user", {
   },
  
   role: {
-    type: DataTypes.ENUM("user", "admin"),
+    type: DataTypes.ENUM("user", "doctor"),
     defaultValue: "user",
   },
 }, {
