@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import useAuthStore from "../stor/login-store.js";
 
 
 
@@ -20,27 +21,37 @@ export default function SignupScreen() {
   const router = useRouter();
 
   const creatUser = useCreatUser();
-
-  const handleRegister = () => {
+  
+  const setAuth = useAuthStore((state) => state.setAuth);  const handleRegister = () => {
     if (!agree) return alert("You must agree to terms");
   
     creatUser.mutate(
       { fullName, email, password, role },
       {
         onSuccess: (data) => {
+          console.log("REGISTER RESPONSE 👉", data);
+  
+          // 1. استخدم setAuth بدلاً من setToken
+          // نمرر الـ token وكائن الـ user كاملاً
+          setAuth(data.token, data.user); 
+  
           alert("User registered successfully!");
   
-          if (data.role === "doctor") {
-            router.replace("./(doctor)/information");
+          // 2. التحقق من الـ role (تأكد هل هو data.role أم data.user.role)
+          const userRole = data.user?.role || data.role;
+  
+          if (userRole === "doctor") {
+            router.replace("/(doctor)/information"); // إزالة النقطة .
           } else {
-            router.replace("./(user)/(tabs)/home");
+            router.replace("/(user)/(tabs)/home");
           }
         },
-        onError: (error) => alert(error.message),
+        onError: (error) => {
+          alert(error?.response?.data?.message || "Registration failed");
+        },
       }
     );
   };
-  
 
   return (
     <LinearGradient colors={["#eaf6ff", "#ffffff", "#a6d8ff"]} style={{ flex: 1 }}>

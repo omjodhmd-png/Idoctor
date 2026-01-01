@@ -1,47 +1,79 @@
-import React, { useState } from 'react';
+import  { useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+
+import { useLogin } from "../servis/login/mutation.js";
+import useAuthStore from "../stor/login-store.js";
 
 export default function LoginScreen() {
   const [secure, setSecure] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const loginMutation = useLogin();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      return alert("Email and password required");
+    }
+
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: (data) => {
+          console.log("LOGIN RESPONSE 👉", data);
+
+          setAuth({ token: data.token, user: data.user });
+          if (data.user.role === "doctor") {
+            router.replace("/(doctor)/(tabs)/profile");
+          } else {
+            router.replace("/(user)/(tabs)/home");
+          }
+        },
+        onError: (err) => {
+          alert(err?.response?.data?.message || "Login failed");
+        },
+      }
+    );
+  };
 
   return (
     <LinearGradient
-    colors={["#eaf6ff", "#ffffff", "#a6d8ff"]}
+      colors={["#eaf6ff", "#ffffff", "#a6d8ff"]}
       style={{ flex: 1 }}
     >
       <SafeAreaView style={styles.container}>
-
-        {/* Title */}
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>
           Login to continue and access your account
         </Text>
 
-        {/* Email Input */}
         <View style={styles.inputBox}>
           <TextInput
             placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
             style={styles.input}
-            keyboardType="email-address"
             autoCapitalize="none"
           />
         </View>
 
-        {/* Password Input */}
         <View style={styles.inputBox}>
           <TextInput
             placeholder="Password"
             secureTextEntry={secure}
+            value={password}
+            onChangeText={setPassword}
             style={styles.input}
           />
           <TouchableOpacity
@@ -49,95 +81,102 @@ export default function LoginScreen() {
             onPress={() => setSecure(!secure)}
           >
             <Ionicons
-              name={secure ? 'eye-off-outline' : 'eye-outline'}
+              name={secure ? "eye-off-outline" : "eye-outline"}
               size={20}
               color="#999"
             />
           </TouchableOpacity>
         </View>
 
-        {/* Login Button */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Log in</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>
+            {loginMutation.isLoading ? "Logging in..." : "Log in"}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>router.push("./register")}>
-        <Text style={styles.signupText}>
-          Don't have an account?
-          <Text style={styles.signupLink}> Sign up</Text>
-        </Text>
+        <TouchableOpacity onPress={() => router.push("/register")}>
+          <Text style={styles.signupText}>
+            Don't have an account?
+            <Text style={styles.signupLink}> Sign up</Text>
+          </Text>
         </TouchableOpacity>
-
       </SafeAreaView>
     </LinearGradient>
   );
 }
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingHorizontal: 25,
-      justifyContent: 'center',
-    },
-  
-    title: {
-      fontSize: 26,
-      fontWeight: 'bold',
-      color: '#000',
-      marginBottom: 10,
-    },
-  
-    subtitle: {
-      fontSize: 14,
-      color: '#6b7c93',
-      marginBottom: 30,
-    },
-  
-    inputBox: {
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      paddingHorizontal: 15,
-      height: 55,
-      justifyContent: 'center',
-      marginBottom: 15,
-      borderWidth: 1,
-      borderColor: '#e6eaf0',
-    },
-  
-    input: {
-      fontSize: 15,
-      color: '#000',
-    },
-  
-    eye: {
-      position: 'absolute',
-      right: 15,
-    },
-  
-    button: {
-      backgroundColor: '#0A84FF',
-      height: 55,
-      borderRadius: 14,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 25,
-    },
-  
-    buttonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  
-    signupText: {
-      textAlign: 'center',
-      marginTop: 20,
-      fontSize: 14,
-      color: '#6b7c93',
-    },
-  
-    signupLink: {
-      color: '#0A84FF',
-      fontWeight: '600',
-    },
-  });
-  
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: "center",
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#0A2540",
+    marginBottom: 8,
+  },
+
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
+    marginBottom: 30,
+  },
+
+  inputBox: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: "#111827",
+  },
+
+  eye: {
+    marginLeft: 10,
+  },
+
+  button: {
+    backgroundColor: "#0A84FF",
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 10,
+    shadowColor: "#0A84FF",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  signupText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+    color: "#6B7280",
+  },
+
+  signupLink: {
+    color: "#0A84FF",
+    fontWeight: "600",
+  },
+});

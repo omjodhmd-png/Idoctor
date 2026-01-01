@@ -11,6 +11,8 @@ export default function Layout() {
     <Stack>
      
       <Stack.Screen name="information" options={{headerShown:false}}/>
+      <Stack.Screen name="map" options={{headerShown:false}}/>
+
       
 
 
