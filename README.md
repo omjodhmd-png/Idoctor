@@ -29,14 +29,6 @@ The goal of the iDoctor application is to simplify the interaction between patie
 * View and confirm appointments
 * Chat with patients
 
-### 🛠️ Admin (Basic)
-
-* Manage users (patients & doctors)
-* Monitor appointments
-* Maintain platform stability
-
----
-
 ## 3. Scope of the Application
 
 This version of iDoctor is intentionally kept simple and focuses only on the core features needed to demonstrate a functional healthcare booking system. Advanced features such as video calls, payments, and medical records are excluded from this phase.
